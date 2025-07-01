@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>INTERN PROJECT STATUS CHECKER</title>
+  <!-- Add the SheetJS library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -10,37 +12,31 @@
       margin: 0;
       padding: 20px;
     }
-
     .header-logos {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 10px;
     }
-
     .header-logos img {
       width: 100px;
       height: auto;
     }
-
     .iac-logo {
       display: flex;
       justify-content: center;
       margin: 10px 0 0 0;
     }
-
     .iac-logo img {
       width: 120px;
       height: auto;
     }
-
     .title {
       text-align: center;
       font-size: 40px;
       font-weight: bold;
       margin: 10px 0 20px 0;
     }
-
     .container {
       max-width: 700px;
       margin: auto;
@@ -51,7 +47,6 @@
       position: relative;
       z-index: 1;
     }
-
     .instructions {
       text-align: left;
       background: #e9f5ff;
@@ -60,25 +55,21 @@
       margin-bottom: 20px;
       border-radius: 6px;
     }
-
     input, button {
       width: 100%;
       padding: 12px;
       font-size: 16px;
       margin-top: 10px;
     }
-
     button {
       background-color: #EA7317;
       color: white;
       border: none;
       cursor: pointer;
     }
-
     button:hover {
       background-color: #c85c07#c85c07;
     }
-
     #result {
       text-align: left;
       margin-top: 20px;
@@ -123,28 +114,34 @@
   <script>
     let studentData = [];
 
-    // Normalization function: remove spaces, dashes convert to uppercase
+    // Normalization function remains the same
     function normalizeId(str) {
       return str.replace(/[\s-]+/g, '').toUpperCase();
     }
 
-    // Load CSV file
-    fetch("students.csv")
-      .then(res => res.text())
-      .then(text => {
-        const lines = text.trim().split(/\r?\n/);
-        const headers = lines[0].split(",");
-        studentData = lines.slice(1).map(line => {
-          const values = line.split(",");
-          let obj = {};
-          headers.forEach((header, i) => {
-            obj[header.trim()] = values[i] ? values[i].trim() : "";
-          });
-          return obj;
-        });
+    // --- UPDATED CODE BLOCK TO LOAD XLSX FILE ---
+    fetch("students.xlsx")
+      .then(res => {
+        if (!res.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return res.arrayBuffer();
+      })
+      .then(data => {
+        const workbook = XLSX.read(data, { type: "array" });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        studentData = XLSX.utils.sheet_to_json(worksheet);
+        console.log("Successfully loaded student data:", studentData);
+      })
+      .catch(error => {
+        console.error("Error loading or parsing the Excel file:", error);
+        document.getElementById("result").innerHTML = "<span style='color:red;'>Error: Could not load the student data file. Please contact an administrator.</span>";
       });
+    // --- END OF UPDATED CODE BLOCK ---
 
-    // Search logic
+
+    // Search logic remains exactly the same!
     function search() {
       const inputId = normalizeId(document.getElementById("internId").value.trim());
       const resultBox = document.getElementById("result");
